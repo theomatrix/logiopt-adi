@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LogiOpt — Smart Logistics Optimization</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    
+    <!-- Leaflet JS and CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-inner">
+            <div class="logo">Logi<span>Opt</span></div>
+            <nav>
+                <button class="active" onclick="scrollTo(0,0)">Home</button>
+                <button onclick="switchModule(0)">Sorting</button>
+                <button onclick="switchModule(1)">Graph</button>
+                <button onclick="switchModule(2)">Greedy</button>
+                <button onclick="switchModule(3)">DP</button>
+                <button onclick="switchModule(4)">D&amp;C</button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO -->
+        <section class="hero">
+            <h1>Smart <em>Logistics</em><br>Optimization</h1>
+            <p>An interactive visualization engine for all 5 algorithm modules — sorting, graph routing, greedy
+                assignment, dynamic programming, and divide &amp; conquer.</p>
+            <div class="badge-row">
+                <span class="badge badge-blue">5 Modules</span>
+                <span class="badge badge-orange">Live Animations</span>
+                <span class="badge badge-green">Benchmarks</span>
+                <span class="badge badge-blue">Interactive Input</span>
+            </div>
+        </section>
+
+        <!-- MODULE SELECTOR -->
+        <div class="module-tabs" id="moduleTabs">
+            <div class="mod-tab active" onclick="switchModule(0)">
+                <div class="num">01</div>
+                <div class="name">Sorting</div>
+            </div>
+            <div class="mod-tab" onclick="switchModule(1)">
+                <div class="num">02</div>
+                <div class="name">Graph</div>
+            </div>
+            <div class="mod-tab" onclick="switchModule(2)">
+                <div class="num">03</div>
+                <div class="name">Greedy</div>
+            </div>
+            <div class="mod-tab" onclick="switchModule(3)">
+                <div class="num">04</div>
+                <div class="name">Dyn. Prog</div>
+            </div>
+            <div class="mod-tab" onclick="switchModule(4)">
+                <div class="num">05</div>
+                <div class="name">Div &amp; Conq</div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════ MODULE 1: SORTING -->
+        <div class="panel active" id="panel0">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                <!-- Input -->
+                <div>
+                    <div class="card">
+                        <div class="card-title">Add Packages</div>
+                        <div class="input-row">
+                            <div><label>Weight (kg)</label><input type="number" id="s_weight" value="12" min="1"
+                                    max="100" /></div>
+                            <div><label>Deadline (hrs)</label><input type="number" id="s_deadline" value="8" min="1"
+                                    max="24" /></div>
+                            <div><label>Priority (1-10)</label><input type="number" id="s_priority" value="7" min="1"
+                                    max="10" /></div>
+                            <div><label>Distance (km)</label><input type="number" id="s_distance" value="45" min="1"
+                                    max="500" /></div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="addPackage()">+ Add Package</button>
+                            <button class="btn btn-secondary" onclick="generatePackages()">Auto-Generate 10</button>
+                        </div>
+                    </div>
+                    <!-- Step Walkthrough -->
+                    <div class="card">
+                        <div class="card-title">Step-by-Step Walkthrough</div>
+                        <div style="margin-bottom:.75rem;">
+                            <label>Algorithm</label>
+                            <select id="algoSelect" onchange="resetSteps()">
+                                <option value="merge">Merge Sort (by Deadline)</option>
+                                <option value="quick">Quick Sort (by Priority)</option>
+                                <option value="heap">Heap Sort (Dynamic Queue)</option>
+                            </select>
+                        </div>
+                        <div id="stepsContainer"></div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="runStep()">▶ Next Step</button>
+                            <button class="btn btn-secondary" onclick="resetSteps()">↺ Reset</button>
+                            <button class="btn btn-orange" onclick="runAllSteps()">⚡ Run All</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Visualization -->
+                <div>
+                    <div class="card">
+                        <div class="card-title">Live Sort Visualization <span class="complexity" id="sortComplexity">O(n
+                                log n)</span></div>
+                        <div class="canvas-wrap" id="sortCanvasWrap">
+                            <canvas id="sortCanvas" height="220"></canvas>
+                        </div>
+                        <div style="margin-top:.75rem;display:flex;gap:.75rem;">
+                            <button class="btn btn-primary" onclick="animateSort()">▶ Animate Sort</button>
+                            <button class="btn btn-secondary" onclick="stopSort()">■ Stop</button>
+                        </div>
+                    </div>
+                    <!-- Performance Compare -->
+                    <div class="card">
+                        <div class="card-title">Algorithm Comparison</div>
+                        <div class="bar-chart" id="sortBars"></div>
+                        <div class="btn-row">
+                            <button class="btn btn-secondary" onclick="runBenchmark()">⚡ Run Benchmark</button>
+                            <div style="margin-left:auto;font-family:var(--font-mono);font-size:.65rem;color:var(--muted);align-self:center;"
+                                id="benchStatus"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Package Table -->
+            <div class="card">
+                <div class="card-title">Package Queue</div>
+                <div id="pkgTableWrap" style="overflow-x:auto;"></div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════ MODULE 2: GRAPH -->
+        <div class="panel" id="panel1">
+            <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;">
+                <div>
+                    <div class="card">
+                        <div class="card-title">City Route Graph</div>
+                        <div style="margin-bottom:.75rem;display:flex;gap:.75rem;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:140px;"><label>Nodes (Cities)</label><input type="range"
+                                    id="g_nodes" min="5" max="20" value="10"
+                                    oninput="document.getElementById('g_nodes_val').textContent=this.value" /><span
+                                    id="g_nodes_val"
+                                    style="font-family:var(--font-mono);font-size:.7rem;color:var(--accent);">10</span>
+                            </div>
+                            <div style="flex:1;min-width:140px;"><label>Source Node</label><input type="number"
+                                    id="g_src" value="0" min="0" max="9" /></div>
+                            <div style="flex:1;min-width:140px;"><label>Target Node</label><input type="number"
+                                    id="g_dst" value="7" min="0" max="9" /></div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="generateGraph()">Generate Graph</button>
+                            <button class="btn btn-secondary" onclick="runDijkstra()">▶ Dijkstra</button>
+                            <button class="btn btn-orange" onclick="runBellmanFord()">▶ Bellman-Ford</button>
+                            <button class="btn btn-secondary" onclick="runMST()">🌳 MST (Kruskal)</button>
+                        </div>
+                        <div class="canvas-wrap" style="margin-top:1rem; position:relative; z-index:0;" id="graphCanvasWrap">
+                            <div id="graphMap" style="height: 380px; width: 100%; border-radius: 8px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <!-- Terminal Log -->
+                    <div class="card" style="padding:0;overflow:hidden;">
+                        <div class="algo-terminal">
+                            <div class="algo-terminal-bar">
+                                <span class="dot r"></span>
+                                <span class="dot y"></span>
+                                <span class="dot g"></span>
+                                <span class="algo-terminal-label" id="termLabel">logiopt — graph engine</span>
+                            </div>
+                            <div class="algo-terminal-body" id="algoTerminal">
+                                <div class="tlog-line">
+                                    <span class="tlog-prompt">$</span>
+                                    <span class="tlog-msg dim">awaiting algorithm run…</span>
+                                    <span class="tlog-cursor"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Results Summary -->
+                    <div class="card">
+                        <div class="card-title">Result</div>
+                        <div id="graphResults"
+                            style="font-family:var(--font-mono);font-size:.72rem;line-height:1.8;color:var(--muted);">
+                            Run an algorithm to see results...
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Complexity</div>
+                        <div class="metric"><span class="metric-name">Dijkstra</span><span class="complexity">O((V+E) log V)</span></div>
+                        <div class="metric"><span class="metric-name">Bellman-Ford</span><span class="complexity">O(V·E)</span></div>
+                        <div class="metric"><span class="metric-name">Kruskal MST</span><span class="complexity">O(E log E)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════ MODULE 3: GREEDY -->
+        <div class="panel" id="panel2">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                <div>
+                    <div class="card">
+                        <div class="card-title">Vehicle Settings</div>
+                        <div class="input-row">
+                            <div><label>Capacity (kg)</label><input type="number" id="v_capacity" value="50" min="10"
+                                    max="200" /></div>
+                            <div><label>Num Vehicles</label><input type="number" id="v_count" value="3" min="1"
+                                    max="5" /></div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="runGreedy('activity')">Activity Selection</button>
+                            <button class="btn btn-orange" onclick="runGreedy('fractional')">Fractional
+                                Knapsack</button>
+                            <button class="btn btn-secondary" onclick="runGreedy('job')">Job Scheduling</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Package Selection Visualization</div>
+                        <div id="greedyPkgViz" class="pkg-list"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <div class="card-title">Greedy vs DP Comparison</div>
+                        <canvas id="greedyChart" height="220"></canvas>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Results</div>
+                        <div id="greedyResults"
+                            style="font-family:var(--font-mono);font-size:.72rem;line-height:2;color:var(--muted);">
+                            Select an algorithm above...</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Step walkthrough -->
+            <div class="card">
+                <div class="card-title">Step-by-Step: Fractional Knapsack</div>
+                <div id="greedySteps"></div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════ MODULE 4: DP -->
+        <div class="panel" id="panel3">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                <div>
+                    <div class="card">
+                        <div class="card-title">0/1 Knapsack DP Table</div>
+                        <div class="input-row">
+                            <div><label>Capacity (kg)</label><input type="number" id="dp_cap" value="50" min="5"
+                                    max="100" /></div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="runKnapsackDP()">▶ Build DP Table</button>
+                        </div>
+                        <div id="dpTableWrap" style="overflow:auto;margin-top:1rem;max-height:300px;"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Selected Items</div>
+                        <div id="dpSelected" class="pkg-list"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <div class="card-title">Floyd-Warshall: All-Pairs Shortest Path</div>
+                        <div class="input-row">
+                            <div><label>Matrix Size</label><input type="number" id="fw_size" value="5" min="3"
+                                    max="8" /></div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-orange" onclick="runFloydWarshall()">▶ Run Floyd-Warshall</button>
+                        </div>
+                        <div id="fwMatrix" style="overflow:auto;margin-top:1rem;"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">DP vs Greedy — Value Comparison</div>
+                        <canvas id="dpChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════ MODULE 5: D&C -->
+        <div class="panel" id="panel4">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                <div>
+                    <div class="card">
+                        <div class="card-title">Closest Pair of Warehouses</div>
+                        <div class="input-row">
+                            <div><label>Num Warehouses</label><input type="number" id="cp_count" value="15" min="5"
+                                    max="30" /></div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="runClosestPair()">▶ Find Closest Pair</button>
+                            <button class="btn btn-secondary" onclick="regenerateWarehouses()">↺ New Points</button>
+                        </div>
+                        <div class="canvas-wrap" style="margin-top:1rem;">
+                            <canvas id="cpCanvas" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <div class="card-title">Divide & Conquer: Zone Division</div>
+                        <div class="input-row">
+                            <div><label>Num Zones</label><input type="number" id="zone_count" value="4" min="2"
+                                    max="6" /></div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-orange" onclick="divideZones()">▶ Divide Network</button>
+                        </div>
+                        <div class="canvas-wrap" style="margin-top:1rem;">
+                            <canvas id="zoneCanvas" height="300"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Master Theorem</div>
+                        <div style="font-family:var(--font-mono);font-size:.75rem;line-height:2.2;color:var(--muted);">
+                            <div style="color:var(--accent);">T(n) = 2T(n/2) + O(n)</div>
+                            <div>a = 2, b = 2, f(n) = n</div>
+                            <div>log_b(a) = log_2(2) = <span style="color:var(--accent3);">1</span></div>
+                            <div>f(n) = Θ(n^1) → <strong style="color:var(--accent);">Case 2</strong></div>
+                            <div>Solution: <span style="color:var(--accent3);">T(n) = O(n log n)</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Scalability benchmark -->
+            <div class="card">
+                <div class="card-title">Scalability Benchmark — All Algorithms</div>
+                <div class="btn-row" style="margin-bottom:1rem;">
+                    <button class="btn btn-primary" onclick="runScalabilityBench()">⚡ Run Full Benchmark</button>
+                    <span id="scaleStatus" class="status status-run" style="display:none;">Running...</span>
+                </div>
+                <div class="bench-grid" id="benchGrid"></div>
+                <canvas id="scaleChart" height="200" style="margin-top:1.5rem;"></canvas>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
