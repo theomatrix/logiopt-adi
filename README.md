@@ -18,8 +18,8 @@ A fully interactive, browser-based visualization engine covering **5 core algori
 
 ## Live Demo
 
-> 🔗 **[logiopt.github.io/logiopt](https://YOUR_USERNAME.github.io/logiopt/)**  
-> *(Replace with your actual GitHub Pages URL)*
+> 🔗 **[logiopt.github.io/logiopt](https://theomatrix.github.io/logiopt-adi/)**  
+
 
 ---
 
